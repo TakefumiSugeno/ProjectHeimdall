@@ -1,0 +1,60 @@
+# ==========================================
+# Test Results & Coverage (Git管理対象外)
+# ==========================================
+test-results/
+coverage/
+.coverage
+.coverage.*
+*.lcov
+*.gcov
+htmlcov/
+TestResults/
+*.trx
+
+# ==========================================
+# Dependencies & Package Managers
+# ==========================================
+node_modules/
+.venv/
+env/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==========================================
+# Build Artifacts & Binaries
+# ==========================================
+bin/
+obj/
+dist/
+build/
+out/
+target/
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+ehthumbs.db
+
+# ==========================================
+# IDE & Editor Configurations
+# ==========================================
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
