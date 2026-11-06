@@ -106,3 +106,122 @@
 - **条件付きLGTM**: なし
 - **保留指摘（申し送り）**: なし
 - **次のアクション**: 次フェーズへ
+
+---
+
+## レビュー記録: adopt-openspec-kit / apply / pg-reviewer (Task 1.1〜2.2)
+
+- **日時**: 2026-11-06
+- **フェーズ**: apply
+- **タスク**: Task 1.1〜2.2（ブランチ準備、`openspec-kit` 一括導入、`AGENTS.md` / `openspec/config.yaml` / `GEMINI.md` 調整、バックアップ削除）
+- **レビュアー**: pg (`pg-reviewer`)
+- **使用プロトコル**: `checklist_apply_impl.md`
+- **対象成果物**: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `openspec/config.yaml`, `openspec/agents/*.md`, `openspec/scripts/verify-gate.{ps1,sh}`, `openspec/templates/*.md`, `.agents/workflows/sdd-*.md`
+
+### 1. 挑戦的設問への回答（悪魔の代弁者・思い込み告発・30%削減検証）
+
+#### 設問1: `design.md` との整合性（管理区間分離・プレースホルダ展開・クリーンアップ）
+
+- **確認内容・回答**: `AGENTS.md` L1-50（`<!-- openspec-kit:begin -->` より上）にはプロジェクト概要と固有ルールのみが配置され、旧手動 OpenSpec ルール記述は削除されて L52-223 の管理区間と重複がないことを確認。`openspec/config.yaml` L69-72 にてベースブランチ `develop`・技術スタック（`TODO` 解消済み）・1:1 構成ルールが反映されていること、`GEMINI.md` / `CLAUDE.md` が `@AGENTS.md` に統一され `config.yaml.bak-*` が削除されていることを確認。
+- **確認根拠**: `AGENTS.md` L1-223, `openspec/config.yaml` L69-72, `GEMINI.md` L1, `CLAUDE.md` L1
+
+#### 設問2: 暗黙の仮定（都合の良い思い込み）・例外握りつぶしの告発
+
+- **確認内容・回答**: `verify-gate.ps1` / `verify-gate.sh` の `Assert-ReviewsValid` は `reviews.md` 内の最後の `- **LGTM**:` 出現箇所を検査するため、運用上は最新セクションに最終 LGTM を記録する規律で整合。空 `catch` 等の例外握りつぶしは存在しない。
+- **確認根拠**: `openspec/scripts/verify-gate.ps1` L88-92, L167-179, `openspec/scripts/verify-gate.sh` L160-168
+
+#### 設問3: 30%コード削減・過剰抽象化の告発（YAGNI検証）
+
+- **確認内容・回答**: `AGENTS.md` 管理区間外の旧記述（184行）を削除して管理区間に一本化し、`GEMINI.md` を1行に簡素化したことで大幅な重複削減を達成。将来的に `AGENTS.md` 上部のディレクトリ説明をさらに絞る余地を Suggestion として記録。
+- **確認根拠**: `AGENTS.md` L5-19, L63-75
+
+### 2. Adversarial QA（破壊テスト実行結果）
+
+- **対象関数/モジュール**: `openspec/scripts/verify-gate.ps1`
+- **破壊テストコード名**: 存在しない変更名（`nonexistent-adversarial-test`）を指定した Gate 2 境界検証
+- **実行コマンド**: `pwsh ./openspec/scripts/verify-gate.ps1 -Gate apply -ChangeName "nonexistent-adversarial-test" -SkipGitCheck`
+- **実行判定**: 堅牢性確認（Green / 未定義例外を起こさず `[FAIL]` メッセージと終了コード `1` で安全に停止）
+- **実行ログ要約**:
+
+```text
+=== OpenSpec Phase Gate Verification: [apply] ===
+  [FAIL] 変更ディレクトリが存在しません: D:\programming\repos\MyGitHubRepos\ProjectHeimdall\openspec\changes\nonexistent-adversarial-test
+ExitCode: 1
+```
+
+### 3. 指摘事項
+
+#### 指摘1
+
+- **内容**: `AGENTS.md` 管理区間外（L11-18, L48）の `test-results/`・`openspec/` の説明が管理区間内（L65-75）と一部重複しているため、将来的なドキュメント整理時に管理区間外を `src/`・`test/`・`doc/` 中心に簡素化する余地がある。
+- **重要度**: Suggestion
+- **対応方針**: 保留
+- **理由**: 現状でも矛盾はなく可読性上の問題はないため、Archive 時に `handover.md` へ申し送り事項として転記する。
+- **対応コミット**: 保留（`handover.md` へ転記予定）
+
+### 4. 判定
+
+- **LGTM**: true
+- **条件付きLGTM**: なし
+- **保留指摘（申し送り）**: 指摘1（Archive 時に `handover.md` へ転記）
+- **次のアクション**: 次タスクへ
+
+---
+
+## レビュー記録: adopt-openspec-kit / apply / qa-reviewer (Task 3.1)
+
+- **日時**: 2026-11-06
+- **フェーズ**: apply
+- **タスク**: Task 3.1（フォーマット・仕様妥当性・フェーズゲート検証およびエビデンス記録）
+- **レビュアー**: qa (`qa-reviewer`)
+- **使用プロトコル**: `checklist_apply_test.md`
+- **対象成果物**: `test-results/evidence/adopt-openspec-kit/apply-verification.log`, `openspec/scripts/verify-gate.ps1`, `openspec/scripts/verify-gate.sh`
+
+### 1. 挑戦的設問への回答（トートロジー告発・甘いアサーション検出・ミューテーション思考）
+
+#### 設問1: トートロジーテスト（実装式のコピペ）の告発
+
+- **確認内容・回答**: 検証は `install.ps1` のロジック複製ではなく、配置後の実ファイル数・CRLF バイト（`0x0D`）不在・OpenSpec CLI（`openspec context --json`, `openspec validate`）および `verify-gate.ps1` の外部観測可能な結果に対して行われており、トートロジーは存在しない。
+- **確認根拠**: `test-results/evidence/adopt-openspec-kit/apply-verification.log`, `openspec/scripts/verify-gate.ps1` L147-L180
+
+#### 設問2: 甘いアサーション・無意味なモックの告発
+
+- **確認内容・回答**: モックを一切使用せず実 CLI・実ファイルシステムで検証しており、`verify-gate.ps1` も最新 LGTM の完全一致検査を行っている。
+- **確認根拠**: `openspec/scripts/verify-gate.ps1` L155-L179
+
+#### 設問3: ミューテーション思考 & フレーキー要因の摘出
+
+- **確認内容・回答**: 条件反転時は確実に `Fail`（終了コード 1）となることを確認。また UTF-8 明示読み込みと改行正規化により環境差・時刻依存のフレーキー要因はない。エビデンスログに配置ファイル数一覧も併記する改善提案（Suggestion）を採用してログを更新済み。
+- **確認根拠**: `openspec/scripts/verify-gate.ps1` L77-L79, `openspec/scripts/verify-gate.sh` L89, L132, L161
+
+### 2. Adversarial QA（独立再検証ログ）
+
+- **対象関数/モジュール**: `openspec/scripts/verify-gate.{ps1,sh}`, OpenSpec CLI 検証
+- **破壊テストコード名**: 実環境ファイル数・LFバイト検査・ゲート再実行による独立検証
+- **実行コマンド**: `Get-ChildItem` 配置数確認、`verify-gate.sh` CRバイト検査、`openspec validate "adopt-openspec-kit"`、`pwsh ./openspec/scripts/verify-gate.ps1 -Gate apply -ChangeName "adopt-openspec-kit" -BaseBranch develop`
+- **実行判定**: 堅牢性確認（Green / 全受け入れ基準の実環境 PASS を確認）
+- **実行ログ要約**:
+
+```text
+Agents (6), Scripts (2), Workflows (3), Templates (8)
+verify-gate.sh has CR (0x0D): False
+Change 'adopt-openspec-kit' is valid
+=== Gate [apply] PASSED ===
+```
+
+### 3. 指摘事項
+
+#### 指摘1
+
+- **内容**: `test-results/evidence/adopt-openspec-kit/apply-verification.log` に配置ファイル数（6 agents, 2 scripts, 3 workflows, 8 templates）の確認結果も併記するとログ単体で全受け入れ基準が完結する。
+- **重要度**: Suggestion
+- **対応方針**: 採用
+- **理由**: エビデンスの自己完結性を高めるため。
+- **対応コミット**: Apply 完了コミット時にエビデンスログを再出力して反映済み
+
+### 4. 判定
+
+- **LGTM**: true
+- **条件付きLGTM**: なし
+- **保留指摘（申し送り）**: なし
+- **次のアクション**: 全タスク完了（Archive フェーズへ）
