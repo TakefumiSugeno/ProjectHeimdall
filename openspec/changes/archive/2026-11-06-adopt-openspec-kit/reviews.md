@@ -225,3 +225,133 @@ Change 'adopt-openspec-kit' is valid
 - **条件付きLGTM**: なし
 - **保留指摘（申し送り）**: なし
 - **次のアクション**: 全タスク完了（Archive フェーズへ）
+
+---
+
+## レビュー記録: adopt-openspec-kit / archive / user-reviewer
+
+- **日時**: 2026-11-06
+- **フェーズ**: archive
+- **タスク**: Archive 総括レビュー（初見エンジニア視点でのドキュメント検証・Why欠落告発）
+- **レビュアー**: user (`user-reviewer`)
+- **使用プロトコル**: `checklist_archive.md`
+- **対象成果物**: `openspec/changes/adopt-openspec-kit/{proposal,design,tasks,reviews,handover}.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `openspec/config.yaml`
+
+### 1. 挑戦的設問への回答（初見エンジニア視点でのWhy検証・トラブルシューティング十分性）
+
+#### 設問1: 設計の背景（Why）の追跡可能性
+
+- **確認内容・回答**: `proposal.md` L3-L5 および `design.md` L21-L38 にて、手動コピーではなく `install.ps1` を採用した理由、`AGENTS.md` を管理区間外と `<!-- openspec-kit:begin/end -->` 管理区間に分離した理由、`GEMINI.md`/`CLAUDE.md` を `@AGENTS.md` 相対参照に統一した理由が明記されており、初見エンジニアが設計意図とトレードオフを100%追跡できる。
+- **確認根拠**: `proposal.md` L3-L17, `design.md` L21-L43, `handover.md` L10-L45
+
+#### 設問2: トラブルシューティング手順の十分性
+
+- **確認内容・回答**: `AGENTS.md` L135-L145, L198-L221 に Gate 0〜3 の検証コマンドと DoD、`handover.md` L31, L44-L45 に `verify-gate` の判定仕様や即時ロールバック手順が明記されており、運用・切り分け導線は十分である。
+- **確認根拠**: `AGENTS.md` L135-L221, `handover.md` L17-L45
+
+### 2. 指摘事項
+
+なし（理由: 初見エンジニア視点での Why・トレードオフ・引き継ぎ手順・ロールバック手順に欠落なし）
+
+### 3. 判定
+
+- **LGTM**: true
+- **条件付きLGTM**: なし
+- **引き継ぎ完了確認**: handover.md に全ての負債・申し送りが記録済み
+- **リリース可否**: 即時リリース可
+- **次のアクション**: Archive 実行
+
+---
+
+## レビュー記録: adopt-openspec-kit / archive / se-reviewer
+
+- **日時**: 2026-11-06
+- **フェーズ**: archive
+- **タスク**: Archive 総括レビュー（隠された技術的負債・妥協点の自白、ロールバック・安全性の最終検証）
+- **レビュアー**: se (`se-reviewer`)
+- **使用プロトコル**: `checklist_archive.md`
+- **対象成果物**: `openspec/changes/adopt-openspec-kit/{proposal,design,tasks,reviews,handover}.md`, `AGENTS.md`, `openspec/config.yaml`, `openspec/scripts/verify-gate.{ps1,sh}`
+
+### 1. 挑戦的設問への回答（隠された技術的負債の自白・ロールバック安全性検証）
+
+#### 設問1: 隠された技術的負債・妥協点の自白（悪魔の代弁者）
+
+- **確認内容・回答**: ①上流 `verify-gate.{ps1,sh}` の末尾 LGTM 判定仕様、②アプリ実装言語未確定に伴う技術スタック・フォーマッタ追記余地、③`AGENTS.md` 管理区間外と管理区間内の一部説明重複の3点すべてが `handover.md` L28-L39 に具体的に記録されている。また管理区間の直接編集による上書き消失罠も `handover.md` L44 に明記済み。
+- **確認根拠**: `handover.md` L26-L45, `openspec/scripts/verify-gate.ps1` L167-L179
+
+#### 設問2: ロールバック・安全性の最終検証
+
+- **確認内容・回答**: DB や外部システムへの副作用は一切なく、問題発生時は `git revert -m 1 <merge-commit-hash>` で直前の安定状態へ安全に巻き戻せる。Apply 時の保留指摘も全件 `handover.md` に転記済み。
+- **確認根拠**: `handover.md` L28-L32, L45
+
+### 2. 指摘事項
+
+なし（理由: 技術的負債・運用上の注意点・ロールバック手順がすべて `handover.md` に明記されているため）
+
+### 3. 判定
+
+- **LGTM**: true
+- **条件付きLGTM**: なし
+- **引き継ぎ完了確認**: handover.md に全ての負債・申し送りが記録済み
+- **リリース可否**: 即時リリース可
+- **次のアクション**: Archive 実行
+
+---
+
+## レビュー記録: adopt-openspec-kit / archive / pg-reviewer
+
+- **日時**: 2026-11-06
+- **フェーズ**: archive
+- **タスク**: Archive 総括レビュー（技術的負債・保留指摘転記確認）
+- **レビュアー**: pg (`pg-reviewer`)
+- **使用プロトコル**: `checklist_archive.md`
+- **対象成果物**: `openspec/changes/adopt-openspec-kit/{reviews,handover,tasks}.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `openspec/config.yaml`
+
+### 1. 挑戦的設問への回答（隠された技術的負債・保留指摘の全件転記確認）
+
+#### 設問1: 今回あえて残した技術的負債と保留指摘の引き継ぎ確認
+
+- **確認内容・回答**: Apply フェーズ（Task 1.1〜2.2）の `pg-reviewer` レビューで保留とした Suggestion 指摘1（`AGENTS.md` 管理区間外の説明簡素化余地）および設問内で挙げた `verify-gate` の末尾 LGTM 判定仕様が、`handover.md` L30-L31 の表に漏れなく転記されていることを確認した。`tasks.md` の全5タスクも `[x]` で完了している。
+- **確認根拠**: `reviews.md` L128-L166, `handover.md` L28-L32, `tasks.md` L5-L18
+
+### 2. 指摘事項
+
+なし（理由: 保留指摘の完全転記と設定・ドキュメントの整合性を確認済み）
+
+### 3. 判定
+
+- **LGTM**: true
+- **条件付きLGTM**: なし
+- **引き継ぎ完了確認**: handover.md に全ての負債・申し送りが記録済み
+- **リリース可否**: 即時リリース可
+- **次のアクション**: Archive 実行
+
+---
+
+## レビュー記録: adopt-openspec-kit / archive / qa-reviewer
+
+- **日時**: 2026-11-06
+- **フェーズ**: archive
+- **タスク**: Archive 総括レビュー（ロールバック・安全性・テストエビデンス・Gate 3 最終検証）
+- **レビュアー**: qa (`qa-reviewer`)
+- **使用プロトコル**: `checklist_archive.md`
+- **対象成果物**: `openspec/changes/adopt-openspec-kit/{proposal,tasks,reviews,handover}.md`, `test-results/evidence/adopt-openspec-kit/apply-verification.log`
+
+### 1. 挑戦的設問への回答（ロールバック安全性・保留指摘引き継ぎ・Gate 3 検証）
+
+#### 設問1: ロールバック安全性・保留指摘引き継ぎ・テストエビデンス最終確認
+
+- **確認内容・回答**: `test-results/evidence/adopt-openspec-kit/apply-verification.log` にて全受け入れ基準（配置ファイル数 6/2/3/8、`openspec context --json` 警告なし、`openspec validate` 成功、`verify-gate.sh` CRLF=False、`verify-gate.ps1 -Gate apply` PASS）が記録されており、保留指摘も `handover.md` へ完全転記されている。さらに Gate 3（`verify-gate.ps1 -Gate archive`）の独立実行でも全項目 PASS を確認した。
+- **確認根拠**: `test-results/evidence/adopt-openspec-kit/apply-verification.log` L1-L31, `handover.md` L17-L45
+
+### 2. 指摘事項
+
+なし（理由: 全受け入れ基準のエビデンス完結性、保留指摘の転記、および Gate 3 機械検証の PASS を確認済み）
+
+### 3. 判定
+
+- **LGTM**: true
+- **条件付きLGTM**: なし
+- **引き継ぎ完了確認**: handover.md に全ての負債・申し送りが記録済み
+- **リリース可否**: 即時リリース可
+- **次のアクション**: Archive 実行
